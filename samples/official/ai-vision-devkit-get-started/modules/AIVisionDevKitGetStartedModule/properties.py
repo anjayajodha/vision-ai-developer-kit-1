@@ -143,6 +143,8 @@ class CameraProperties:
             print("configure_overlay_state: %s" % self.__overlay_state)
             camera_client.set_overlay_state(self.__overlay_state)
 
+        print(str(camera_client.captureimage()))
+
         # TODO: it seems that analytics can't restart unless preview is bounced
         # need to handle that case
         print("set_analytics_state: %s" % self.__analytics_state)

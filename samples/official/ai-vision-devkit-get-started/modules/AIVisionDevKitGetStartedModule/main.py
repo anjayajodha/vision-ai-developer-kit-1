@@ -64,6 +64,7 @@ def print_inference(result=None, hub_manager=None, last_sent_time=time.time()):
         print("Found result object")
         inference = Inference(inf_obj)
         if (properties.model_properties.is_object_of_interest(inference.label)):
+            print(str(camera_client.captureimage()))
             json_message = inference.to_json()
             iot_hub_manager.send_message_to_upstream(json_message)
             print(json_message)
@@ -99,7 +100,6 @@ def main(protocol):
                 iot_hub_manager = IotHubManager(
                     protocol, camera_client, properties)
                 iot_hub_manager.subscribe_to_events()
-
                 while True:
                     try:
                         while camera_client.vam_running:

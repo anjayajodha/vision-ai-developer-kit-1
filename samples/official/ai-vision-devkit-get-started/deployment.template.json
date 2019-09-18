@@ -86,7 +86,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "${MODULES.WebStreamModule}",
+              "image": "${MODULES.WebStreamModule.arm32v7}",
               "createOptions": {
                 "ExposedPorts": {
                   "3000/tcp": {},
@@ -144,7 +144,7 @@
       "properties.desired": {
         "ModelZipUrl": "",
         "TimeBetweenMessagesInSeconds": 12,
-        "ObjectsOfInterest": "[\"ALL\"]",
+        "ObjectsOfInterest": "",
         "ShowVideoOverlay": true,
         "Bitrate": "1.5Mbps",
         "Resolution": "1080P",

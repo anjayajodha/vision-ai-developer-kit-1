@@ -42,6 +42,8 @@ RUN pip install --upgrade setuptools
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
+RUN pip3 --default-timeout=1000 install azure-storage-blob
+
 COPY . .
 
 # RUN useradd -ms /bin/bash moduleuser
