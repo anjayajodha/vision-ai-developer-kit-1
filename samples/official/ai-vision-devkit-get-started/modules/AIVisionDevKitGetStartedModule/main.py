@@ -21,6 +21,8 @@ from . iot_hub_manager import IotHubManager
 from iotccsdk import CameraClient
 from iothub_client import IoTHubTransportProvider, IoTHubError
 import time
+from azure.storage.blob import BlockBlobService, PublicAccess
+import os
 
 # Choose HTTP, AMQP or MQTT as transport protocol.  Currently only MQTT is supported.
 IOT_HUB_PROTOCOL = IoTHubTransportProvider.MQTT
@@ -30,6 +32,8 @@ camera_client = None
 iot_hub_manager = None
 properties = None
 model_util = None
+
+STORAGE_ACCOUNT_CONNECTION_STRING = os.environ.get('STORAGE_ACCOUNT_CONNECTION_STRING')
 
 
 def create_camera(ip_address=None, username="admin", password="admin"):
@@ -52,7 +56,7 @@ def create_camera(ip_address=None, username="admin", password="admin"):
         password=password)
 
 
-def print_inference(result=None, hub_manager=None, last_sent_time=time.time()):
+def print_inference(result=None, hub_manager=None, last_sent_time=time.time(), block_blob_service=None, container_name=None):
     global properties
     if (time.time() - last_sent_time <= properties.model_properties.message_delay_sec
             or result is None
@@ -64,7 +68,7 @@ def print_inference(result=None, hub_manager=None, last_sent_time=time.time()):
         print("Found result object")
         inference = Inference(inf_obj)
         if (properties.model_properties.is_object_of_interest(inference.label)):
-            print(str(camera_client.captureimage()))
+            print(str(camera_client.captureimagetoblob(block_blob_service, container_name)))
             json_message = inference.to_json()
             iot_hub_manager.send_message_to_upstream(json_message)
             print(json_message)
@@ -78,6 +82,15 @@ def main(protocol):
     global iot_hub_manager
     global properties
     global model_util
+
+    block_blob_service = BlockBlobService(connection_string=STORAGE_ACCOUNT_CONNECTION_STRING)
+
+    container_name = 'fromcamera'
+
+    block_blob_service.create_container(container_name)
+
+    block_blob_service.set_container_acl(container_name, public_access=PublicAccess.Container)
+
 
     print("Create model_util")
     model_util = ModelUtility()
@@ -106,7 +119,7 @@ def main(protocol):
                             with camera_client.get_inferences() as results:
                                 for result in results:
                                     last_time = print_inference(
-                                        result, iot_hub_manager, last_time)
+                                        result, iot_hub_manager, last_time, block_blob_service, container_name)
                     except EOFError:
                         print("EOFError. Current VAM running state is %s." %
                               camera_client.vam_running)

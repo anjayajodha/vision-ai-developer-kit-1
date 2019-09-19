@@ -36,6 +36,7 @@ import os
 from contextlib import contextmanager
 from .ipcprovider import IpcProvider
 from .frame_iterators import VideoInferenceIterator
+from azure.storage.blob import BlockBlobService, PublicAccess
 
 DOCKER_IP_PREFIX = "172.17"
 NULL_IP = "0.0.0.0"
@@ -610,7 +611,7 @@ class CameraClient():
             f.write(base64.b64decode(response["Data"]))
         return True
 
-    def captureimagetoblob(self):
+    def captureimagetoblob(self, block_blob_service, container_name):
         """
         This method is for taking a snapshot.
 
@@ -634,8 +635,7 @@ class CameraClient():
         dir_name = os.path.dirname(os.path.abspath(__name__))
         full_file_name = os.path.join(dir_name, file_name)
         self.logger.info("Storing snapshot: %s" % full_file_name)
-        with open(file_name, "wb") as f:
-            f.write(base64.b64decode(response["Data"]))
+        blobprops = block_blob_service.create_blob_from_bytes(container_name, file_name,base64.b64decode(response["Data"]))
         return True
 
     @contextmanager
